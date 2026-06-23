@@ -17,9 +17,8 @@ public class HelloApplication extends Application {
     public static final int width = 800;
     public static final int height = 600;
     public static final int wall_length = 1;
-    private double grav = gravity/scale;
-    private static final double gravity = 9.8;
-    private static final double scale = 20.0;
+    private static final double gravity = 1764;
+
     public ArrayList<Body> body = new ArrayList<>();
 
 
@@ -35,23 +34,38 @@ public class HelloApplication extends Application {
         stage.setScene(scene);
         stage.setTitle("Gravity Simulator");
         stage.show();
-        Body b = new Body(100,300,3,0,50, 10,Color.AQUA);
+        Body b = new Body(400,200,180,0,50, 20,Color.AQUA);
         body.add(b);
-        Body c = new Body(100,300,5,10,30, 10, Color.BLUE);
+        Body c = new Body(100,300,300,0,30, 10, Color.BLUE);
         body.add(c);
+        Body d = new Body(700,100,500,0,30, 10, Color.CHARTREUSE);
+        body.add(d);
 
         AnimationTimer timer = new AnimationTimer() {
+            private long lastTime = 0;
             @Override
             public void handle(long now) {
+                if (lastTime == 0) {
+                    lastTime = now;
+                    return;
+                }
+                double dt = (now - lastTime) / 1_000_000_000.0;
+                lastTime = now;
+
                 gc.setFill(Color.BLACK);
                 gc.fillRect(0, 0, width, height);
                 gc.setFill(Color.WHITE);
                 gc.fillRect(0, height-wall_length, width, wall_length);
                 gc.fillRect(0, 0, wall_length, height);
                 gc.fillRect(width-wall_length, 0, wall_length, height);
-                for(Body bod : body) {
-                    bod.update(grav);
-                    bod.handleWalls(width ,height ,wall_length);
+                for (Body bod : body) {
+                    bod.update(gravity, dt);
+                    bod.handleWalls(width, height, wall_length);
+                }
+                for (Body bod : body) {
+                    Body.handleCollisions(bod, body);
+                }
+                for (Body bod : body) {
                     bod.draw(gc);
                 }
             }
